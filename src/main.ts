@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 async function bootstrap() {
 	ConfigModule.forRoot();
 	const app = await NestFactory.create<NestExpressApplication>(AppModule);
+	app.enableCors();
 	await app.listen(parseInt(process.env[`PORT`] || ``));
 }
 bootstrap();

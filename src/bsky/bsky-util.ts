@@ -149,6 +149,7 @@ export class BskyUtil {
 		}
 
 		// Getting post author
+		let authorDID: string;
 		try {
 			const authorResult = await agent.getProfile({
 				actor: components.authorHandle,
@@ -156,10 +157,12 @@ export class BskyUtil {
 			if (!authorResult.success) {
 				throw new HttpException(`Unable to find BlueSky profile with handle "${components.authorHandle}"`, HttpStatus.NOT_FOUND);
 			}
-			return await this.getPostInformation(authorResult.data.did, components.postId, agent, identifier, password);
+			authorDID = authorResult.data.did;
 		} catch (err) {
 			throw new HttpException(`Unable to find BlueSky profile with handle "${components.authorHandle}"`, HttpStatus.NOT_FOUND);
 		}
+
+		return await this.getPostInformation(authorDID, components.postId, agent, identifier, password);
 	}
 
 	async getPostInformation(authorDID: string,
@@ -192,7 +195,7 @@ export class BskyUtil {
 		try {
 			const threadResult = await agent.getPostThread({
 				uri: this.buildPostUri(authorDID, postId),
-				parentHeight: 1,
+				parentHeight: 0,
 				depth: 1,
 			});
 			if (!threadResult.success) {
@@ -251,15 +254,23 @@ export class BskyUtil {
 			agent = await this.buildAuthenticatedAgent(identifier, password);
 		}
 
-		const threadResponse = await agent.getPostThread({
-			uri: this.buildPostUri(authorDID, postId),
-			depth: 0,
-			parentHeight: 0,
-		});
-		if (!threadResponse.success) {
-			throw new HttpException(`Unable to fetch raffle post from BlueSky`, HttpStatus.NOT_FOUND);
+		let post: PostView;
+		try {
+			const threadResponse = await agent.getPostThread({
+				uri: this.buildPostUri(authorDID, postId),
+				depth: 0,
+				parentHeight: 0,
+			});
+			if (!threadResponse.success) {
+				throw new HttpException(`Unable to fetch raffle post with ID "${postId}" from BlueSky`, HttpStatus.NOT_FOUND);
+			}
+			if (threadResponse.data.thread.$type != `app.bsky.feed.defs#threadViewPost`) {
+				throw new HttpException(`Unable to find BlueSky post with ID "${postId}", or the post is blocked`, HttpStatus.NOT_FOUND);
+			}
+			post = (threadResponse.data.thread as ThreadViewPost).post;
+		} catch (err) {
+			throw new HttpException(`Unable to fetch raffle post with ID "${postId}" from BlueSky`, HttpStatus.NOT_FOUND);
 		}
-		const post = threadResponse.data.thread.post;
 
 		const getWinnersResponse = await agent.getProfiles({
 			actors: winnerDIDs,
