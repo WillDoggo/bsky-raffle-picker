@@ -284,18 +284,20 @@ export class BskyUtil {
 		for (const winnerReplyUriEntry of winnerReplyUriEntries) {
 			const winnerDID = winnerReplyUriEntry[0];
 			const replyUris = winnerReplyUriEntry[1];
-			const getPostsResponse = await agent.getPosts({
-				uris: replyUris,
-			});
-			if (getPostsResponse.success) {
-				winnerReplies[winnerDID] = getPostsResponse.data.posts.map(x => {
-					const record = x.record as Record<string, unknown>;
-					return {
-						uri: x.uri,
-						text: record[`text`] as string || ``,
-						embed: x.embed,
-					};
+			if (replyUris.length > 0) {
+				const getPostsResponse = await agent.getPosts({
+					uris: replyUris,
 				});
+				if (getPostsResponse.success) {
+					winnerReplies[winnerDID] = getPostsResponse.data.posts.map(x => {
+						const record = x.record as Record<string, unknown>;
+						return {
+							uri: x.uri,
+							text: record[`text`] as string || ``,
+							embed: x.embed,
+						};
+					});
+				}
 			}
 		}
 
