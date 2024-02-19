@@ -13,8 +13,9 @@ CREATE TABLE IF NOT EXISTS drawing_winners (
 	FOREIGN KEY (drawing_id) REFERENCES drawings(id)
 );
 CREATE TABLE IF NOT EXISTS drawing_winner_replies (
-	reply_uri TEXT PRIMARY KEY NOT NULL,
+	reply_uri TEXT NOT NULL,
 	drawing_id TEXT NOT NULL COLLATE NOCASE,
 	user_did TEXT NOT NULL,
+	PRIMARY KEY (drawing_id, reply_uri),
 	FOREIGN KEY (drawing_id) REFERENCES drawings(id)
 );

@@ -1,6 +1,6 @@
 {
   "name": "bsky-raffle-picker",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A Nest.js web app for artists on BlueSky to randomly select raffle winners.",
   "private": true,
   "scripts": {
